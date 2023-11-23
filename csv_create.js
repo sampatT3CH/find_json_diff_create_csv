@@ -6,7 +6,7 @@
 
 
   //read the file inputjson for api
-  fs.readdirSync('../Health/').forEach(file => {
+  fs.readdirSync('./Health/').forEach(file => {
 
       const filenames = []
       const inputPrefix = "InputJson_";
@@ -17,7 +17,7 @@
 
       result = result.replace(".txt", "");
 
-      const resultBuffer = fs.readFileSync('../Health/' + file);
+      const resultBuffer = fs.readFileSync('./Health/' + file);
       const resultData = JSON.parse(resultBuffer.toString().trim());
       let data = JSON.stringify(resultData);
 
