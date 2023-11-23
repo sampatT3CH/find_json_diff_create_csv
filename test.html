@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>Geo Coding</title>
+  <style>
+    html {
+      height: 100%;
+    }
+
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      display: grid;
+      justify-items: center;
+      align-items: center;
+      background-color: #F5ECEA;
+    }
+
+    .container {
+      width: 50%;
+      height: 70%;
+      display: grid;
+      padding: 10px;
+      justify-items: center;
+      align-items: center;
+      background-color: white;
+      border-radius: 7px;
+      box-shadow: 0px 0px 5px 2px black;
+    }
+
+
+    #form {
+      align-self: flex-start;
+      display: grid;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .form-field::placeholder {
+      color: #3a3a3a;
+    }
+
+    .form-field {
+      border: none;
+      border-bottom: 1px solid #3a3a3a;
+      margin-bottom: 10px;
+      border-radius: 3px;
+      outline: none;
+      padding: 0px 0px 5px 5px;
+    }
+
+    #submit {
+      width: 100%;
+      padding: 7px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      background-color: #3a3a3a;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .logo {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      max-width: 60px;
+    }
+
+
+    #showResult {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 8px;
+      /* Adjust the font size as needed */
+    }
+
+    #lat,
+    #long {
+      font-size: 18px;
+      /* font-weight: bold;Adjust the font size as needed */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/HDFC-Ergo-logo.png" class="logo" alt="HDFC Ergo Logo">
+    <h1>Geo Positioning</h1>
+    <div>
+      <input type="radio" name="tab" value="single" onclick="showToggle('single');" checked />
+      Single
+      <input type="radio" name="tab" value="bulk" onclick="showToggle('bulk');" />
+      Bulk
+    </div>
+
+    <form id="form">
+      <input type="text" name="address" id="address" class="form-field" placeholder="Address"><br />
+      <input type="text" name="city" id="city" class="form-field" placeholder="City"><br />
+      <input type="text" name="pincode" id="pincode" class="form-field" placeholder="Pincode"><br />
+      <input type="button" value="Submit" id="submit" onclick="geocodeAddress()">
+    </form>
+
+    <div id="ShowResult" style="display: none;">
+      <b>Latitude, Longitude: </b> <span id="lat"></span><span>,</span>
+      <span id="long"></span>
+      <button id="copyButton" style="cursor: pointer;">Copy</button>
+      <!-- <i id="copyButton" class="far fa-copy"></i> -->
+    </div>
+
+    <form id="bulk" style="display: none;">
+      <label for="myfile">Select a file:</label>
+      <input type="file" id="myfile" name="myfile"><br><br>
+      <input type="button" value="Submit" id="submit" onclick="bulkSubmit()">
+    </form>
+  </div>
+  <script>
+
+function bulkSubmit(){
+    const fileInput = document.getElementById('myfile');
+    console.log(fileInput)
+        const file = fileInput.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Send the formData to the backend using the Fetch API
+            fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData
+            }) 
+            .then((response) => {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                throw new Error('Check the address column');
+            }
+        })
+        .then((data) => {
+            // Handle the response JSON from the backend
+            console.log(data);
+        })
+        .catch((error) => {
+          if(error.message == 'Check the address column')
+            alert('Error: ' + error.message);
+        });
+        } else {
+            alert('Please select a file to upload.');
+        }  
+}
+
+
+    function showToggle(type) {
+      if (type === 'single') {
+        document.getElementById('form').style.display = 'block';
+        document.getElementById('bulk').style.display = 'none';
+        document.getElementById('ShowResult').style.display = 'none';
+      } else {
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('bulk').style.display = 'block';
+        document.getElementById('ShowResult').style.display = 'none';
+      }
+    }
+
+    function geocodeAddress() {
+      var geocoder = new google.maps.Geocoder();
+      var address = document.getElementById('address').value;
+      var city = document.getElementById('city').value;
+      var pincode = document.getElementById('pincode').value;
+
+
+      var fullAddress = address + ', ' + city + ', ' + pincode;
+
+      geocoder.geocode({ address: fullAddress }, function (results, status) {
+        if (status === 'OK') {
+          const res = results[0].geometry.location;
+          const latitude = res.lat();
+          const longitude = res.lng();
+
+          document.getElementById('lat').textContent = latitude;
+          document.getElementById('long').textContent = longitude;
+          document.getElementById('ShowResult').style.display = 'block';
+        } else {
+          alert('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    }
+
+
+    function copyTextToClipboard(text) {
+      var textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+
+
+    document.getElementById('copyButton').addEventListener('click', function () {
+      var latitude = document.getElementById('lat').textContent;
+      var longitude = document.getElementById('long').textContent;
+      var textToCopy = latitude + ',' + longitude;
+      copyTextToClipboard(textToCopy);
+      alert('Copied to clipboard: ' + textToCopy);
+    });
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQNegGRyWEBuF9g9kgzvjhrxS-SnRb6ns">
+
+
+    // src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMaVHv5BkzEtyPkT4ro6hG_11XH7EMEUM">
+
+
+  </script>
+</body>
+
+</html>
