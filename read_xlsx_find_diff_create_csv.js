@@ -20,7 +20,7 @@ const apiUrl = 'https://devapigee.itnext-dev.com/blazehealth/optimaSecure';
 // Define your API request configuration
 const headers = {
   'Content-Type': 'application/json',
-  'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJoZGZjLWVyZ28tdXNlciIsImNsaWVudGlkIjoiMmVzY0xBZFFXMnFyMzdFMDN1QUlPY1dBcEM2R0VLanhWYmlQajVJR1M3eldSWUQ2IiwiaXNzIjoidXJuOi8vYXBpZ2VlLUpXVC1wb2xpY3kiLCJleHAiOjE3MDExODQyMjQsImlhdCI6MTcwMTE2MjYyNCwianRpIjoiNjg4NGViZTYtMzY2Ni00MjMwLWFmY2ItNmNmMTMwNjZiMTE5In0.3JBKft5sncAVx0QYMM2jwU1Ky0t9y-iZtE-MdD7QMow',
+  'Authorization': 'Bearer TOKEN',
 };
 
 // Make individual API requests for each BLAZE_REQUEST
