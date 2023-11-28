@@ -27,7 +27,7 @@
           url: 'https://devapigee.itnext-dev.com/blazehealth/optimaSecure',
           headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'BEARER TOKEN'
+              'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJoZGZjLWVyZ28tdXNlciIsImNsaWVudGlkIjoiMmVzY0xBZFFXMnFyMzdFMDN1QUlPY1dBcEM2R0VLanhWYmlQajVJR1M3eldSWUQ2IiwiaXNzIjoidXJuOi8vYXBpZ2VlLUpXVC1wb2xpY3kiLCJleHAiOjE3MDA4MjI0MDQsImlhdCI6MTcwMDgwMDgwNCwianRpIjoiOTQyY2YwMDAtODU3Ni00YjYyLWJkZTctZjVjZmYyZTVlNTFiIn0.UKBGhMJdDzVws7DZ_a11JVSh20hHI8XTu0tz-2Oo7bw'
           },
           data: data
       };
@@ -35,7 +35,7 @@
       axios.request(config)
           .then(async (response) => {
           
-              const outputBuffer = fs.readFileSync(`../Health/OutputJson_${result}.txt`);
+              const outputBuffer = fs.readFileSync(`./Health/OutputJson_${result}.txt`);
               const outputData = JSON.parse(outputBuffer.toString().trim());
               const differences = await findDifferences(response.data, outputData,result);
               //create csv file
@@ -70,7 +70,6 @@
       path: record.path.join('_'),  
       value1: record.value1,
       value2: record.value2,
-      value3: record.value3,
     };
   }})
     .catch((error) => {
