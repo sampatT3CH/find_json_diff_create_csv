@@ -1,0 +1,52 @@
+const fs = require('fs');
+const archiver = require('archiver');
+
+
+exports.getParticular = async (req, res, next) => {
+  const xlsx = require('xlsx');
+  const workbook = xlsx.readFile('v5.XLSX');
+const sheetName = workbook.SheetNames[0];
+const sheet = workbook.Sheets[sheetName];
+
+const excelData = xlsx.utils.sheet_to_json(sheet, { raw: true });
+
+
+  const db = getFirestore();
+  const insuranceRef = db.collection('Insurance');
+  const snapshot = await insuranceRef.get();
+  const serviceRes = [];
+
+
+  const zip = archiver('zip', { zlib: { level: 9 } });
+    const zipFileName = 'downloaded_files.zip';
+    const output = fs.createWriteStream(zipFileName);
+
+    zip.pipe(output);
+
+  for (const entry of excelData) {
+    const flashaidId = entry['Flashaid Id'];
+
+    const matchingDoc = snapshot.docs.find(doc => doc.data().id === flashaidId);
+
+    if (matchingDoc) {
+      const link = matchingDoc.data().notifications.ecard.link;
+      const response = await axios.get(link, { responseType: 'stream' });
+
+       
+        zip.append(response.data, { name: `${flashaidId}.pdf` });
+      serviceRes.push({ flashaidId, link });
+    }
+  }
+
+   // Finalize the zip file
+   zip.finalize();
+
+   output.on('close', () => {
+     console.log(`${zipFileName} has been created successfully.`);
+     res.status(200).download(zipFileName);
+   });
+  res.status(200).json({
+    status: true,
+    serviceRes,
+  });
+};
