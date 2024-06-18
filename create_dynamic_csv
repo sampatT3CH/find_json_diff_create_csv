@@ -1,0 +1,71 @@
+const { Parser } = require('json2csv');
+
+// const { getFirestore } = require('./firebase'); 
+
+
+
+exports.getRazorpayOrderId = async (req, res, next) => {
+  try {
+    const db = getFirestore();
+    const serviceRef = db.collection('Insurance');
+
+    const querySnapshot = await serviceRef
+      .where('FA.companyName', '==', 'FiveForce')
+      .get();
+
+    const results = [];
+    const memberKeys = new Set();
+
+    querySnapshot.forEach((doc) => {
+      const docId = doc.id;
+      const primaryDetails = doc.data().primary_details;
+      const otherMembers = doc.data().otherMembers;
+
+      // Extract primary details
+      const primaryDetails_dob = primaryDetails.date_of_birth;
+      const primaryDetails_fullname = primaryDetails.fullname;
+
+      const result = {
+        docId,
+        primaryDetails_dob,
+        primaryDetails_fullname
+      };
+
+      // Extract otherMembers details
+      if (otherMembers) {
+        Object.keys(otherMembers).forEach((key) => {
+          const member = otherMembers[key];
+          result[`${key}_fullname`] = member.fullname;
+          result[`${key}_dob`] = member.date_of_birth;
+          memberKeys.add(key); // Add the key to the set
+        });
+      }
+
+      results.push(result);
+    });
+
+    // Dynamically create the CSV headers
+    const fields = ['docId', 'primaryDetails_dob', 'primaryDetails_fullname'];
+    memberKeys.forEach((key) => {
+      fields.push(`${key}_fullname`, `${key}_dob`);
+    });
+
+    // Convert results to CSV
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(results);
+
+    // Set headers for CSV response
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="insurance_data.csv"');
+
+    // Send CSV as response
+    res.status(200).send(csv);
+
+    // Optionally, save CSV to a file
+    fs.writeFileSync('insurance_data.csv', csv, 'utf-8');
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
+};
