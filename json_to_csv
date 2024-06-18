@@ -1,0 +1,46 @@
+const { Parser } = require('json2csv');
+
+exports.getRazorpayOrderId = async (req, res, next) => {
+  try {
+    const db = getFirestore();
+    const serviceRef = db.collection('Insurance');
+
+    // Filter documents based on companyName 'FiveForce'
+    const querySnapshot = await serviceRef
+      .where('FA.companyName', '==', 'FiveForce')
+      .get();
+
+    const results = []; // Array to hold results
+
+    querySnapshot.forEach((doc) => {
+      const docId = doc.id;
+      const otherMembers = doc.data().otherMembers;
+      const primaryDetails = doc.data().primary_details;
+
+      // Push data into results array
+      results.push({
+        docId,
+        otherMembers,
+        primaryDetails
+      });
+    });
+
+    // Convert JSON to CSV
+    const json2csvParser = new Parser({ fields: ['docId', 'otherMembers', 'primaryDetails'] });
+    const csv = json2csvParser.parse(results);
+
+    // Set headers for CSV response
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="insurance_data.csv"');
+
+    // Send CSV as response
+    res.status(200).send(csv);
+
+    // Optionally, save CSV to a file
+    fs.writeFileSync('insurance_data.csv', csv, 'utf-8');
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
+};
